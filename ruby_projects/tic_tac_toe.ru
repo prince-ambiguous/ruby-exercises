@@ -14,31 +14,22 @@ class Board
   attr_accessor :value
 
   def print_board
-    @board.map.with_index do |row, idx|
-      row.map.with_index do |cell, idx|
-        if idx != 2
+    @board.map.with_index do |row, idx1|
+      row.map.with_index do |cell, idx2|
+        if idx2 != 2
           print " #{cell} |"
         else
           print " #{cell} \n"
         end
       end
-      print "---+---+---\n" if idx != 2
+      print "---+---+---\n" if idx1 != 2
     end
   end
 
-  def ary(_prm1, prm2)
-    @board = Array.new(3) { Array.new(3) }
-    @board.map.with_index do |row, idx_r|
-      row.map.with_index do |cell, idx_c|
-        cell = case idx_r
-               when 0
-                 idx_c + 1
-               when 1
-                 idx_c + 4
-               else
-                 idx_c + 7
-               end
-        cell = @symbol if prm2 == cell
+  def ary(value)
+    @board.map do |row|
+      row.map do |cell|
+        cell = @symbol if value == cell.to_i
         cell
       end
     end
@@ -46,11 +37,11 @@ class Board
 
   def play_move(symbol, value)
     @symbol = symbol
-    @value = value
-    @board = ary(@symbol, @value)
+    @board = ary(value)
   end
 end
 
+# Takes_input_from_the_user
 class HumanPlayer
   attr_reader :player_selection
 
@@ -70,11 +61,12 @@ class HumanPlayer
   end
 
   def get_move
-    puts 'Enter Move position '
+    puts "\nEnter Move position "
     @move_position = gets.chomp.to_i
   end
 end
 
+# Creates_a_computer_and_selects_values_at_random
 class ComputerPlayer
   attr_reader :player_selection
 
@@ -107,15 +99,8 @@ class Game
     computer = ComputerPlayer.new
 
     get_input(human, computer)
-    if human.player_selection == 'X'
-      puts "Player selects 'X';\nplayer recieves 1st Move: "
-      play_round(human, board)
-    else
-      puts "Player selects 'O';\nComputer recieves 1st Move: "
-      play_round(computer, board)
-    end
-
     board.print_board
+    match(human, computer, board)
   end
 
   def get_input(player1, player2)
@@ -123,14 +108,40 @@ class Game
     @player2 = player2.selection(player1.player_selection)
   end
 
-  def play_round(player, board)
-    board.print_board
-    if player.player_selection == @player1
-        board.play_move(@player1, player.get_move)
+  def match(human, computer, board)
+    if human.player_selection == 'X'
+      puts "Player selects 'X';\nplayer recieves 1st Move: "
+      start_iteration_with(board, human, computer)
     else
-        board.play_move(@player2, player.get_move)
-        puts "Computer move"
+      puts "Player selects 'O';\nComputer recieves 1st Move: "
+      start_iteration_with(board, computer, human)
     end
+  end
+
+  def start_iteration_with(board, player1, player2)
+    # player_choice = player.player_selection
+    i = 0
+    while i < 9
+      if i.even?
+        play_round(board, player1)
+      else
+        play_round(board, player2)
+      end
+      i += 1
+      # player_choice = player_choice == 'X' ? 'O' : 'X'
+    end
+  end
+
+  def play_round(board, player)
+    move = player.get_move
+    if player.to_s.include?('HumanPlayer')
+      board.play_move(@player1, move)
+      puts "\nPlayer move #{move}\n"
+    else
+      board.play_move(@player2, move)
+      puts "\nComputer move #{move}\n"
+    end
+    board.print_board
   end
 end
 
